@@ -23,22 +23,6 @@
         <mesh filename="package://assets/leap_hand_xela_motorholder.stl"/>
       </geometry>
     </collision>
-    <!-- Part uspa46 -->
-    <visual>
-      <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
-      <geometry>
-        <mesh filename="package://assets/uspa46.stl"/>
-      </geometry>
-      <material name="uspa46_material">
-        <color rgba="0.792157 0.819608 0.933333 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
-      <geometry>
-        <mesh filename="package://assets/uspa46.stl"/>
-      </geometry>
-    </collision>
     <!-- Part thp0_unified -->
     <visual>
       <origin xyz="0.0235627 -0.013 0.0845" rpy="-0 -0 1.5708"/>
@@ -216,6 +200,27 @@
       </geometry>
     </collision>
   </link>
-
+  <link name="uspa46_1_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/uspa46.stl"/>
+      </geometry>
+      <material name="uspa46_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://assets/uspa46.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="uspa46_1_fixed" type="fixed">
+    <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="uspa46_1_link"/>
+  </joint>
   </robot>
   
