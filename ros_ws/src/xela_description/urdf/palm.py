@@ -6,8 +6,104 @@ except ImportError:  # pragma: no cover
     from list_to_string import list_to_string  # noqa: F401
 
 
-def get_palm_constant() -> str:
-    return """<link name="leap_hand_xela_back_cover">
+def get_sparseskin_frames() -> str:
+    """Dummy links + fixed joints for sparse-skin sensor frames on the palm."""
+    return """  <!-- Frame 46_ss_1 (dummy link + fixed joint) -->
+  <link name="46_ss_1">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="46_ss_1_frame" type="fixed">
+    <origin xyz="-0.0269 -0.027 0.048" rpy="1.5708 0 -0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="46_ss_1"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 46_ss_3 (dummy link + fixed joint) -->
+  <link name="46_ss_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="46_ss_3_frame" type="fixed">
+    <origin xyz="-0.0269 -0.027 0.0811" rpy="1.5708 0 -0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="46_ss_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 46_ss_2 (dummy link + fixed joint) -->
+  <link name="46_ss_2">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="46_ss_2_frame" type="fixed">
+    <origin xyz="0.0654 -0.027 0.1113" rpy="-1.5708 -0 -3.14159"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="46_ss_2"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+
+
+  <!-- Frame 44_ss_rf_3 (dummy link + fixed joint) -->
+  <link name="44_ss_rf_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_rf_3_frame" type="fixed">
+    <origin xyz="-0.04897 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_rf_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 44_ss_mf_3 (dummy link + fixed joint) -->
+  <link name="44_ss_mf_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_mf_3_frame" type="fixed">
+    <origin xyz="-0.00352 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_mf_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 44_ss_if_3 (dummy link + fixed joint) -->
+  <link name="44_ss_if_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_if_3_frame" type="fixed">
+    <origin xyz="0.04193 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_if_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>"""
+
+
+def get_palm_constant(sparseskin: bool = False) -> str:
+    palm_link = """<link name="leap_hand_xela_back_cover">
     <inertial>
       <origin xyz="-0.000780549 -0.00686016 0.0718797" rpy="0 0 0"/>
       <mass value="0.237"/>
@@ -222,9 +318,13 @@ def get_palm_constant() -> str:
       </geometry>
     </collision>
   </link>"""
+    if sparseskin:
+        return f"{palm_link}\n{get_sparseskin_frames()}"
+    return palm_link
 
-def render_palm_joints_urdf() -> str:
-    palm_link = get_palm_constant()
+
+def render_palm_joints_urdf(sparseskin: bool = False) -> str:
+    palm_link = get_palm_constant(sparseskin=sparseskin)
     return f"""
   <?xml version="1.0" ?>
   <robot name="xela_palm_generated">
@@ -233,14 +333,30 @@ def render_palm_joints_urdf() -> str:
   """.rstrip("\n")
 
 
-def write_palm_urdf(file_path: str) -> None:
+def write_palm_urdf(file_path: str, sparseskin: bool = False) -> None:
     with open(file_path, "w", encoding="utf-8") as f:
-        f.write(render_palm_joints_urdf())
+        f.write(render_palm_joints_urdf(sparseskin=sparseskin))
 
 
 if __name__ == "__main__":
+    import argparse
     import os
 
-    out_path = os.environ.get("OUT") or "palm.urdf"
-    write_palm_urdf(out_path)
+    parser = argparse.ArgumentParser(description="Generate palm URDF.")
+    parser.add_argument(
+        "--sparseskin",
+        action="store_true",
+        default=False,
+        help="Include sparse-skin sensor frames on the palm",
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        default=None,
+        help="Output URDF path (default: OUT env or palm.urdf)",
+    )
+    args = parser.parse_args()
+
+    out_path = args.out or os.environ.get("OUT") or "palm.urdf"
+    write_palm_urdf(out_path, sparseskin=args.sparseskin)
 

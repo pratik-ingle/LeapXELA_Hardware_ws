@@ -23,6 +23,22 @@
         <mesh filename="package://assets/leap_hand_xela_motorholder.stl"/>
       </geometry>
     </collision>
+    <!-- Part uspa46 -->
+    <visual>
+      <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
+      <geometry>
+        <mesh filename="package://assets/uspa46.stl"/>
+      </geometry>
+      <material name="uspa46_material">
+        <color rgba="0.792157 0.819608 0.933333 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
+      <geometry>
+        <mesh filename="package://assets/uspa46.stl"/>
+      </geometry>
+    </collision>
     <!-- Part thp0_unified -->
     <visual>
       <origin xyz="0.0235627 -0.013 0.0845" rpy="-0 -0 1.5708"/>
@@ -200,27 +216,97 @@
       </geometry>
     </collision>
   </link>
-  <link name="uspa46_1_link">
-    <visual>
+  <!-- Frame 46_ss_1 (dummy link + fixed joint) -->
+  <link name="46_ss_1">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://assets/uspa46.stl"/>
-      </geometry>
-      <material name="uspa46_material">
-        <color rgba="0.792157 0.819608 0.933333 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <geometry>
-        <mesh filename="package://assets/uspa46.stl"/>
-      </geometry>
-    </collision>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
   </link>
-  <joint name="uspa46_1_fixed" type="fixed">
-    <origin xyz="-0.005515 -0.027 0.0631" rpy="-0 -0 -3.14159"/>
+  <joint name="46_ss_1_frame" type="fixed">
+    <origin xyz="-0.0269 -0.027 0.048" rpy="1.5708 0 -0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="uspa46_1_link"/>
+    <child link="46_ss_1"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 46_ss_3 (dummy link + fixed joint) -->
+  <link name="46_ss_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="46_ss_3_frame" type="fixed">
+    <origin xyz="-0.0269 -0.027 0.0811" rpy="1.5708 0 -0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="46_ss_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 46_ss_2 (dummy link + fixed joint) -->
+  <link name="46_ss_2">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="46_ss_2_frame" type="fixed">
+    <origin xyz="0.0654 -0.027 0.1113" rpy="-1.5708 -0 -3.14159"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="46_ss_2"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+
+
+  <!-- Frame 44_ss_rf_3 (dummy link + fixed joint) -->
+  <link name="44_ss_rf_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_rf_3_frame" type="fixed">
+    <origin xyz="-0.04897 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_rf_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 44_ss_mf_3 (dummy link + fixed joint) -->
+  <link name="44_ss_mf_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_mf_3_frame" type="fixed">
+    <origin xyz="-0.00352 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_mf_3"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 44_ss_if_3 (dummy link + fixed joint) -->
+  <link name="44_ss_if_3">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="44_ss_if_3_frame" type="fixed">
+    <origin xyz="0.04193 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
+    <parent link="leap_hand_xela_back_cover"/>
+    <child link="44_ss_if_3"/>
+    <axis xyz="0 0 0"/>
   </joint>
   </robot>
   

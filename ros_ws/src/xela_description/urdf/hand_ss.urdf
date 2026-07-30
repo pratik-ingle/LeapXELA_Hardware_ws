@@ -862,7 +862,7 @@
   </joint>
 
   <joint name="th_fingertip_frame" type="fixed">
-    <origin xyz="0.0 -0.0300003 0.014504" rpy="3.14159 -1.5708 0.0"/>
+    <origin xyz="-0.0139201 -0.0300003 0.014504" rpy="3.14159 -1.5708 0.0"/>
     <parent link="th_ipl"/>
     <child link="th_fingertip"/>
     <axis xyz="0.0 0.0 0.0"/>
@@ -918,7 +918,7 @@
   </joint>
 
   <joint name="fingertip_ss_rf_1_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="-3.14159 -1.5708 0.0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0.0"/>
     <parent link="rf_fingertip"/>
     <child link="fingertip_ss_rf_1"/>
     <axis xyz="0.0 0.0 0.0"/>
@@ -966,7 +966,7 @@
   </joint>
 
   <joint name="fingertip_ss_mf_4_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="-3.14159 -1.5708 0.0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0.0"/>
     <parent link="mf_fingertip"/>
     <child link="fingertip_ss_mf_4"/>
     <axis xyz="0.0 0.0 0.0"/>
@@ -1014,7 +1014,7 @@
   </joint>
 
   <joint name="fingertip_ss_if_4_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="3.14159 -1.5708 0.0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0.0"/>
     <parent link="if_fingertip"/>
     <child link="fingertip_ss_if_4"/>
     <axis xyz="0.0 0.0 0.0"/>

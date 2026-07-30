@@ -318,13 +318,122 @@ class THREALTIPJOINT:
     def limit(self) -> dict[str, Any]:
         return None
 
+
+class SparseSkinFrameLink:
+    """Dummy inertial-only link used as a sparse-skin sensor frame."""
+
+    def __init__(self, name: str):
+        self._name = name
+
+    def link_name(self) -> str:
+        return self._name
+
+    def inertial(self) -> dict[str, Any]:
+        return {
+            "origin": {"xyz": [0.0, 0.0, 0.0], "rpy": [0.0, 0.0, 0.0]},
+            "mass": 1e-9,
+            "inertia": {
+                "ixx": 0.0,
+                "ixy": 0.0,
+                "ixz": 0.0,
+                "iyy": 0.0,
+                "iyz": 0.0,
+                "izz": 0.0,
+            },
+        }
+
+    def visual(self) -> None:
+        return None
+
+    def collision(self) -> None:
+        return None
+
+
+class SparseSkinFrameJoint:
+    """Fixed joint attaching a sparse-skin frame to a thumb link."""
+
+    def __init__(
+        self,
+        joint_name: str,
+        parent_link: str,
+        child_link: str,
+        xyz: list[float],
+        rpy: list[float],
+    ):
+        self._joint_name = joint_name
+        self._parent_link = parent_link
+        self._child_link = child_link
+        self._xyz = xyz
+        self._rpy = rpy
+
+    def joint_name(self) -> str:
+        return self._joint_name
+
+    def joint_type(self) -> str:
+        return "fixed"
+
+    def origin(self) -> dict[str, Any]:
+        return {"xyz": self._xyz, "rpy": self._rpy}
+
+    def parent_link_name(self) -> str:
+        return self._parent_link
+
+    def child_link_name(self) -> str:
+        return self._child_link
+
+    def axis(self) -> list[float]:
+        return [0.0, 0.0, 0.0]
+
+    def limit(self) -> None:
+        return None
+
+
+def _sparseskin_frames() -> tuple[list[Any], list[Any]]:
+    """Dummy links + fixed joints for thumb sparse-skin frames."""
+    specs = [
+        (
+            "44_ss_th_1",
+            "th_mcp",
+            [-0.01, 0.0201, 0.0032],
+            [1.5708, 0.0, -1.5708],
+        ),
+        (
+            "th_fingertip",
+            "th_ipl",
+            [-0.0139201, -0.0300003, 0.014504],
+            [3.14159, -1.5708, 0.0],
+        ),
+        (
+            "44_ss_th_2",
+            "th_ipl",
+            [0.01, -0.0201, 0.0032],
+            [1.5708, 0.0, 1.5708],
+        ),
+    ]
+
+    links: list[Any] = []
+    joints: list[Any] = []
+    for frame_name, parent, xyz, rpy in specs:
+        links.append(SparseSkinFrameLink(frame_name))
+        joints.append(
+            SparseSkinFrameJoint(
+                joint_name=f"{frame_name}_frame",
+                parent_link=parent,
+                child_link=frame_name,
+                xyz=xyz,
+                rpy=rpy,
+            )
+        )
+    return links, joints
+
+
 @dataclass(frozen=True)
 class Thumb:
     links: list[Any]
     joints: list[Any]
 
 
-def generate_thumb(teleop: bool = False) -> Thumb:
+def generate_thumb(teleop: bool = False, sparseskin: bool = False) -> Thumb:
     joint_config = load_joint_config(JOINT_CONFIG_FILE)["leapXela"]["sim"]["thumb"]
     links = [CMCLink(), AXLLink(), MCPLink(), IPLLink()]
 
@@ -332,6 +441,10 @@ def generate_thumb(teleop: bool = False) -> Thumb:
     if teleop:
         links += [THREALTIPLINK()]
         joints += [THREALTIPJOINT()]
+    if sparseskin:
+        ss_links, ss_joints = _sparseskin_frames()
+        links += ss_links
+        joints += ss_joints
     return Thumb(links=links, joints=joints)
 
 
@@ -428,9 +541,25 @@ def write_thumb_urdf(file_path: str, thumb: Thumb) -> None:
 
 
 if __name__ == "__main__":
+    import argparse
     import os
 
-    thumb = generate_thumb()
-    out_path = os.environ.get("OUT") or "thumb.urdf"
+    parser = argparse.ArgumentParser(description="Generate thumb URDF.")
+    parser.add_argument(
+        "--sparseskin",
+        action="store_true",
+        default=False,
+        help="Include sparse-skin sensor frames on the thumb",
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        default=None,
+        help="Output URDF path (default: OUT env or thumb.urdf)",
+    )
+    args = parser.parse_args()
+
+    thumb = generate_thumb(sparseskin=args.sparseskin)
+    out_path = args.out or os.environ.get("OUT") or "thumb.urdf"
     write_thumb_urdf(out_path, thumb)
     print(f"Wrote {out_path}")

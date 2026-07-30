@@ -356,6 +356,9 @@
     <child link="44_ss_if_3"/>
     <axis xyz="0 0 0"/>
   </joint>
+
+
+
   <!-- Link p4_unified -->
   <link name="p4_unified">
     <inertial>
@@ -540,11 +543,15 @@
     </inertial>
   </link>
   <joint name="fingertip_ss_rf_1_frame" type="fixed">
-    <origin xyz="-0 -0.025 0.0145" rpy="-3.14159 -1.5708 0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0"/>
     <parent link="fingertip_fix"/>
     <child link="fingertip_ss_rf_1"/>
     <axis xyz="0 0 0"/>
   </joint>
+
+
+
+
   <!-- Joint from p2_unified to fingertip_fix -->
   <joint name="rf_dip" type="revolute">
     <origin xyz="0.0361 -0 -0.0291" rpy="0 0 1.5708"/>
@@ -761,7 +768,7 @@
     </inertial>
   </link>
   <joint name="fingertip_ss_mf_4_frame" type="fixed">
-    <origin xyz="0 -0.025 0.0145" rpy="-3.14159 -1.5708 0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0"/>
     <parent link="fingertip_fix_2"/>
     <child link="fingertip_ss_mf_4"/>
     <axis xyz="0 0 0"/>
@@ -982,7 +989,7 @@
     </inertial>
   </link>
   <joint name="fingertip_ss_if_4_frame" type="fixed">
-    <origin xyz="-0 -0.025 0.0145" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="-0.0139201 -0.025 0.0145" rpy="3.14159 -1.5708 0"/>
     <parent link="fingertip_fix_3"/>
     <child link="fingertip_ss_if_4"/>
     <axis xyz="0 0 0"/>
@@ -1178,6 +1185,8 @@
       </geometry>
     </collision>
   </link>
+
+  
   <!-- Frame th_fingertip (dummy link + fixed joint) -->
   <link name="th_fingertip">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
@@ -1188,11 +1197,14 @@
     </inertial>
   </link>
   <joint name="th_fingertip_frame" type="fixed">
-    <origin xyz="0 -0.0300003 0.014504" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="-0.0139201 -0.0300003 0.014504" rpy="3.14159 -1.5708 0"/>
     <parent link="thfingertip_housing"/>
     <child link="th_fingertip"/>
     <axis xyz="0 0 0"/>
   </joint>
+
+
+
   <!-- Frame 44_ss_th_2 (dummy link + fixed joint) -->
   <link name="44_ss_th_2">
     <origin xyz="0 0 0" rpy="0 -0 0"/>

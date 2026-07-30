@@ -87,10 +87,12 @@ class ThumbCMCJoint(BasePalmJoint):
 
 
 
-def generate_mf_rf_if_links_and_joints() -> tuple[str, str]:
-    rf_finger = generate_finger("rf" ,0.0, teleop=True)
-    mf_finger = generate_finger("mf",0.0, teleop=True)
-    if_finger = generate_finger("if",0.0, teleop=True)
+def generate_mf_rf_if_links_and_joints(
+    sparseskin: bool = False, teleop: bool = False
+) -> tuple[str, str]:
+    rf_finger = generate_finger("rf", 0.0, teleop=teleop, sparseskin=sparseskin)
+    mf_finger = generate_finger("mf", 0.0, teleop=teleop, sparseskin=sparseskin)
+    if_finger = generate_finger("if", 0.0, teleop=teleop, sparseskin=sparseskin)
 
     fingers = [rf_finger, mf_finger, if_finger]
 
@@ -99,8 +101,10 @@ def generate_mf_rf_if_links_and_joints() -> tuple[str, str]:
 
     return fingers_links, joints_urdf
 
-def generate_thumb_links_and_joints() -> tuple[str, str]:
-    thumb = generate_thumb(teleop = True)
+def generate_thumb_links_and_joints(
+    sparseskin: bool = False, teleop: bool = False
+) -> tuple[str, str]:
+    thumb = generate_thumb(teleop=teleop, sparseskin=sparseskin)
     thumb_links = "\n".join(thumb_link_urdf(link) for link in thumb.links)
     thumb_joints = "\n".join(thumb_joint_urdf(joint) for joint in thumb.joints)
     return thumb_links, thumb_joints
@@ -130,10 +134,14 @@ def generate_palm_joints() -> str:
     ]
     return "\n".join(joint_urdf(j) for j in palm_joints)
 
-def render_hand_joints_urdf() -> str:
-    fingers_links, finger_joints = generate_mf_rf_if_links_and_joints()
-    thumb_links, thumb_joints = generate_thumb_links_and_joints()
-    palm_link = get_palm_constant()
+def render_hand_joints_urdf(sparseskin: bool = False, teleop: bool = False) -> str:
+    fingers_links, finger_joints = generate_mf_rf_if_links_and_joints(
+        sparseskin=sparseskin, teleop=teleop
+    )
+    thumb_links, thumb_joints = generate_thumb_links_and_joints(
+        sparseskin=sparseskin, teleop=teleop
+    )
+    palm_link = get_palm_constant(sparseskin=sparseskin)
     palm_joints = generate_palm_joints()
     return f"""
   <?xml version="1.0" ?>
@@ -149,14 +157,39 @@ def render_hand_joints_urdf() -> str:
   </robot>
   """.rstrip("\n")
 
-def write_hand_urdf(file_path: str) -> None:
+def write_hand_urdf(
+    file_path: str, sparseskin: bool = False, teleop: bool = False
+) -> None:
     with open(file_path, "w", encoding="utf-8") as f:
-        f.write(render_hand_joints_urdf())
+        f.write(render_hand_joints_urdf(sparseskin=sparseskin, teleop=teleop))
 
 
 if __name__ == "__main__":
+    import argparse
     import os
 
-    out_path = os.environ.get("OUT") or "hand.urdf"
-    write_hand_urdf(out_path)
+    parser = argparse.ArgumentParser(description="Generate hand URDF.")
+    parser.add_argument(
+        "--sparseskin",
+        action="store_true",
+        default=False,
+        help="Include sparse-skin sensor frames (writes hand_ss.urdf by default)",
+    )
+    parser.add_argument(
+        "--teleop",
+        action="store_true",
+        default=False,
+        help="Include teleop realtip links/joints on fingers and thumb",
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        default=None,
+        help="Output URDF path (default: hand_ss.urdf with --sparseskin, else hand.urdf)",
+    )
+    args = parser.parse_args()
+
+    default_out = "hand_ss.urdf" if args.sparseskin else "hand.urdf"
+    out_path = args.out or os.environ.get("OUT") or default_out
+    write_hand_urdf(out_path, sparseskin=args.sparseskin, teleop=args.teleop)
 

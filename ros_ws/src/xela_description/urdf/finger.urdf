@@ -93,12 +93,36 @@
     </collision>
   </link>
 
+  <link name="44_ss_rf_1">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+
+  <link name="44_ss_rf_2">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+
+  <link name="fingertip_ss_rf_1">
+    <inertial>
+      <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+    </inertial>
+  </link>
+
   <joint name="rf_rot" type="revolute">
     <origin xyz="0.0326 -0.0123 -0.0145" rpy="-1.5708 -1.5708 0.0"/>
     <parent link="rf_mcp"/>
     <child link="rf_pip"/>
     <axis xyz="0.0 0.0 1.0"/>
-    <limit effort="0.95" velocity="8.48" lower="-0.349" upper="0.349"/>
+    <limit effort="0.95" velocity="8.48" lower="0.349" upper="-0.349"/>
   </joint>
 
   <joint name="rf_pip" type="revolute">
@@ -115,6 +139,30 @@
     <child link="rf_fingertip"/>
     <axis xyz="0.0 0.0 1.0"/>
     <limit effort="0.95" velocity="8.48" lower="-0.0873" upper="2.2689"/>
+  </joint>
+
+  <joint name="44_ss_rf_1_frame" type="fixed">
+    <origin xyz="-0.0113381 0.0245413 0.023" rpy="0.0 0.0 -1.5708"/>
+    <parent link="rf_pip"/>
+    <child link="44_ss_rf_1"/>
+    <axis xyz="0.0 0.0 0.0"/>
+    
+  </joint>
+
+  <joint name="44_ss_rf_2_frame" type="fixed">
+    <origin xyz="0.045226 0.0095 -0.0259" rpy="1.5708 0.0 3.14159"/>
+    <parent link="rf_dip"/>
+    <child link="44_ss_rf_2"/>
+    <axis xyz="0.0 0.0 0.0"/>
+    
+  </joint>
+
+  <joint name="fingertip_ss_rf_1_frame" type="fixed">
+    <origin xyz="0.0 -0.025 0.0145" rpy="-3.14159 -1.5708 0.0"/>
+    <parent link="rf_fingertip"/>
+    <child link="fingertip_ss_rf_1"/>
+    <axis xyz="0.0 0.0 0.0"/>
+    
   </joint>
 
 <link name="base"/>

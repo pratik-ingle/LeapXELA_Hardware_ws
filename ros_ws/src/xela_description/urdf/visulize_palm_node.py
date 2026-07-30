@@ -3,13 +3,77 @@ from __future__ import annotations
 import argparse
 import time
 from pathlib import Path
+from typing import Dict, List, Tuple
+
+SS_LINK_SUBSTRING = "_ss_"
+DEFAULT_AXIS_LENGTH = 0.015
+DEFAULT_LINE_WIDTH = 2.0
 
 
 def _default_urdf_path() -> str:
     return str(Path(__file__).resolve().parent / "palm.urdf")
 
 
-def _run_pybullet(urdf_path: str, use_gui: bool = True) -> None:
+def _axis_endpoints(
+    p,
+    origin: Tuple[float, float, float],
+    orientation: Tuple[float, float, float, float],
+    axis_length: float,
+) -> Tuple[List[float], List[float], List[float]]:
+    rot = p.getMatrixFromQuaternion(orientation)
+    x_axis = (rot[0], rot[3], rot[6])
+    y_axis = (rot[1], rot[4], rot[7])
+    z_axis = (rot[2], rot[5], rot[8])
+
+    def endpoint(axis: Tuple[float, float, float]) -> List[float]:
+        return [
+            origin[0] + axis_length * axis[0],
+            origin[1] + axis_length * axis[1],
+            origin[2] + axis_length * axis[2],
+        ]
+
+    return endpoint(x_axis), endpoint(y_axis), endpoint(z_axis)
+
+
+def _get_ss_link_indices(p, body_id: int) -> Dict[str, int]:
+    link_indices: Dict[str, int] = {}
+    for joint_index in range(p.getNumJoints(body_id)):
+        info = p.getJointInfo(body_id, joint_index)
+        child_name = info[12].decode("utf-8")
+        if SS_LINK_SUBSTRING in child_name:
+            link_indices[child_name] = joint_index
+    return link_indices
+
+
+def _draw_ss_frames(p, body_id: int) -> None:
+    """Draw RGB axes + labels on sparse-skin (_ss_) links."""
+    link_indices = _get_ss_link_indices(p, body_id)
+    if not link_indices:
+        print("Warning: sparseskin=True but no '_ss_' links found in URDF")
+        return
+
+    print(f"Drawing frames on {len(link_indices)} sparseskin links:")
+    for link_name, link_index in sorted(link_indices.items()):
+        link_state = p.getLinkState(body_id, link_index, computeForwardKinematics=True)
+        origin, orientation = link_state[4], link_state[5]
+        x_end, y_end, z_end = _axis_endpoints(
+            p, origin, orientation, DEFAULT_AXIS_LENGTH
+        )
+        p.addUserDebugLine(origin, x_end, [1.0, 0.0, 0.0], lineWidth=DEFAULT_LINE_WIDTH)
+        p.addUserDebugLine(origin, y_end, [0.0, 1.0, 0.0], lineWidth=DEFAULT_LINE_WIDTH)
+        p.addUserDebugLine(origin, z_end, [0.0, 0.0, 1.0], lineWidth=DEFAULT_LINE_WIDTH)
+        p.addUserDebugText(
+            link_name,
+            [origin[0], origin[1], origin[2] + 0.006],
+            textColorRGB=[1.0, 1.0, 0.0],
+            textSize=1.0,
+        )
+        print(f"  - {link_name}")
+
+
+def _run_pybullet(
+    urdf_path: str, use_gui: bool = True, sparseskin: bool = False
+) -> None:
     try:
         import pybullet as p  # type: ignore
         import pybullet_data  # type: ignore
@@ -42,12 +106,15 @@ def _run_pybullet(urdf_path: str, use_gui: bool = True) -> None:
         except Exception:
             pass
 
-        p.loadURDF(
+        body_id = p.loadURDF(
             str(urdf),
             basePosition=[0.0, 0.0, 0.0],
             baseOrientation=p.getQuaternionFromEuler([0.0, 0.0, 0.0]),
             useFixedBase=True,
         )
+
+        if sparseskin:
+            _draw_ss_frames(p, body_id)
 
         if use_gui:
             while p.isConnected(cid):
@@ -76,13 +143,29 @@ def main() -> None:
         action="store_true",
         help="Use DIRECT connection instead of GUI",
     )
+    parser.add_argument(
+        "--sparseskin",
+        action="store_true",
+        default=False,
+        help="Regenerate palm with sparse-skin frames and draw RGB axes on them",
+    )
     args = parser.parse_args()
 
     urdf_path = args.urdf or _default_urdf_path()
+    sparseskin = bool(args.sparseskin)
+
+    if sparseskin and args.urdf is None:
+        try:
+            from palm import write_palm_urdf
+        except ImportError:  # pragma: no cover
+            from .palm import write_palm_urdf  # type: ignore
+        write_palm_urdf(urdf_path, sparseskin=True)
+
     use_gui = not args.direct
     print(f"Loading URDF in PyBullet: {urdf_path}")
     print(f"PyBullet GUI: {use_gui}")
-    _run_pybullet(urdf_path=urdf_path, use_gui=use_gui)
+    print(f"sparseskin: {sparseskin}")
+    _run_pybullet(urdf_path=urdf_path, use_gui=use_gui, sparseskin=sparseskin)
 
 
 if __name__ == "__main__":

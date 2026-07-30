@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 SS_LINK_SUBSTRING = "_ss_"
-EXTRA_FRAME_LINKS = ("th_fingertip",)
+FINGERTIP_SS_SUBSTRING = "fingertip_ss"
 DEFAULT_AXIS_LENGTH = 0.015
 FINGERTIP_AXIS_LENGTH = 0.048
 DEFAULT_LINE_WIDTH = 2.0
@@ -15,7 +15,7 @@ FINGERTIP_LINE_WIDTH = 4.8
 
 
 def _default_urdf_path() -> str:
-    return str(Path(__file__).resolve().parent / "thumb.urdf")
+    return str(Path(__file__).resolve().parent / "finger.urdf")
 
 
 def _make_pybullet_ready_urdf(source_urdf: Path) -> Path:
@@ -25,24 +25,20 @@ def _make_pybullet_ready_urdf(source_urdf: Path) -> Path:
         "package://assets/",
         f"{(source_urdf.parent / 'assets').as_posix()}/",
     )
-    temp_dir = Path(tempfile.mkdtemp(prefix="xela_thumb_pybullet_"))
+    temp_dir = Path(tempfile.mkdtemp(prefix="xela_finger_pybullet_"))
     temp_urdf = temp_dir / source_urdf.name
     temp_urdf.write_text(urdf_text, encoding="utf-8")
     return temp_urdf
 
 
-def _is_large_frame(link_name: str) -> bool:
-    return link_name == "th_fingertip"
-
-
 def _axis_length(link_name: str) -> float:
-    if _is_large_frame(link_name):
+    if FINGERTIP_SS_SUBSTRING in link_name:
         return FINGERTIP_AXIS_LENGTH
     return DEFAULT_AXIS_LENGTH
 
 
 def _line_width(link_name: str) -> float:
-    if _is_large_frame(link_name):
+    if FINGERTIP_SS_SUBSTRING in link_name:
         return FINGERTIP_LINE_WIDTH
     return DEFAULT_LINE_WIDTH
 
@@ -68,22 +64,14 @@ def _axis_endpoints(
     return endpoint(x_axis), endpoint(y_axis), endpoint(z_axis)
 
 
-def _get_frame_link_indices(p, body_id: int) -> Dict[str, int]:
-    link_name_to_index: Dict[str, int] = {}
+def _get_ss_link_indices(p, body_id: int) -> Dict[str, int]:
+    link_indices: Dict[str, int] = {}
     for joint_index in range(p.getNumJoints(body_id)):
         info = p.getJointInfo(body_id, joint_index)
         child_name = info[12].decode("utf-8")
-        link_name_to_index[child_name] = joint_index
-
-    frame_links = {
-        name: index
-        for name, index in link_name_to_index.items()
-        if SS_LINK_SUBSTRING in name
-    }
-    for name in EXTRA_FRAME_LINKS:
-        if name in link_name_to_index:
-            frame_links[name] = link_name_to_index[name]
-    return frame_links
+        if SS_LINK_SUBSTRING in child_name:
+            link_indices[child_name] = joint_index
+    return link_indices
 
 
 def _joint_slider_limits(lower: float, upper: float) -> tuple[float, float, float]:
@@ -119,11 +107,11 @@ class _SsFrameVisualizer:
     def __init__(self, p, body_id: int) -> None:
         self._p = p
         self.body_id = body_id
-        self.link_indices = _get_frame_link_indices(p, body_id)
+        self.link_indices = _get_ss_link_indices(p, body_id)
         self.axis_line_ids: Dict[str, Tuple[int, int, int]] = {}
         self.label_ids: Dict[str, int] = {}
         if not self.link_indices:
-            print("Warning: sparseskin=True but no sparse-skin frame links found in URDF")
+            print("Warning: sparseskin=True but no '_ss_' links found in URDF")
             return
         print(f"Drawing frames on {len(self.link_indices)} sparseskin links:")
         for link_name in sorted(self.link_indices):
@@ -154,7 +142,7 @@ class _SsFrameVisualizer:
                 link_name,
                 [origin[0], origin[1], origin[2] + 0.006],
                 textColorRGB=[1.0, 1.0, 0.0],
-                textSize=1.5 if _is_large_frame(link_name) else 1.0,
+                textSize=1.5 if FINGERTIP_SS_SUBSTRING in link_name else 1.0,
             )
 
     def update(self) -> None:
@@ -183,7 +171,7 @@ class _SsFrameVisualizer:
                 link_name,
                 [origin[0], origin[1], origin[2] + 0.006],
                 textColorRGB=[1.0, 1.0, 0.0],
-                textSize=1.5 if _is_large_frame(link_name) else 1.0,
+                textSize=1.5 if FINGERTIP_SS_SUBSTRING in link_name else 1.0,
                 replaceItemUniqueId=self.label_ids[link_name],
             )
 
@@ -207,7 +195,9 @@ def _run_pybullet(
     if not urdf.exists():
         raise FileNotFoundError(f"URDF not found: {urdf}")
     if urdf.is_dir():
-        raise IsADirectoryError(f"URDF path points to a directory, not a file: {urdf}")
+        raise IsADirectoryError(
+            f"URDF path points to a directory, not a file: {urdf}"
+        )
 
     ready_urdf = _make_pybullet_ready_urdf(urdf)
 
@@ -254,11 +244,16 @@ def _run_pybullet(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Visualize thumb URDF in PyBullet.")
+    parser = argparse.ArgumentParser(description="Visualize finger URDF in PyBullet.")
     parser.add_argument(
         "--urdf",
         default=None,
-        help="Path to URDF (default: thumb.urdf in this directory)",
+        help="Path to URDF (default: finger.urdf in this directory)",
+    )
+    parser.add_argument(
+        "--prefix",
+        default="rf",
+        help="Finger prefix when regenerating URDF (rf/mf/if)",
     )
     parser.add_argument(
         "--direct",
@@ -269,7 +264,7 @@ def main() -> None:
         "--sparseskin",
         action="store_true",
         default=False,
-        help="Regenerate thumb with sparse-skin frames and draw RGB axes on them",
+        help="Regenerate finger with sparse-skin frames and draw RGB axes on them",
     )
     args = parser.parse_args()
 
@@ -278,15 +273,16 @@ def main() -> None:
 
     if args.urdf is None:
         try:
-            from thumb import generate_thumb, write_thumb_urdf
+            from finger import generate_finger, write_finger_urdf
         except ImportError:  # pragma: no cover
-            from .thumb import generate_thumb, write_thumb_urdf  # type: ignore
-        thumb = generate_thumb(sparseskin=sparseskin)
-        write_thumb_urdf(urdf_path, thumb)
+            from .finger import generate_finger, write_finger_urdf  # type: ignore
+        finger = generate_finger(args.prefix, 0.0, sparseskin=sparseskin)
+        write_finger_urdf(urdf_path, finger)
 
     use_gui = not args.direct
     print(f"Loading URDF in PyBullet: {urdf_path}")
     print(f"PyBullet GUI: {use_gui}")
+    print(f"prefix: {args.prefix}")
     print(f"sparseskin: {sparseskin}")
     _run_pybullet(urdf_path=urdf_path, use_gui=use_gui, sparseskin=sparseskin)
 

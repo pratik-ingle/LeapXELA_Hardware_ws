@@ -322,6 +322,123 @@ class RELATIPJOINT:
         return None
 
 
+# Fingertip sparse-skin frame suffix matches leapXela_ss/robot.urdf naming.
+_FINGERTIP_SS_SUFFIX = {"rf": "1", "mf": "4", "if": "4"}
+_FINGERTIP_SS_XYZ = [-0.0139201, -0.025, 0.0145]
+_FINGERTIP_SS_RPY = [3.14159, -1.5708, 0.0]
+
+
+class SparseSkinFrameLink:
+    """Dummy inertial-only link used as a sparse-skin sensor frame."""
+
+    def __init__(self, name: str):
+        self._name = name
+
+    def link_name(self) -> str:
+        return self._name
+
+    def inertial(self) -> dict[str, Any]:
+        return {
+            "origin": {"xyz": [0.0, 0.0, 0.0], "rpy": [0.0, 0.0, 0.0]},
+            "mass": 1e-9,
+            "inertia": {
+                "ixx": 0.0,
+                "ixy": 0.0,
+                "ixz": 0.0,
+                "iyy": 0.0,
+                "iyz": 0.0,
+                "izz": 0.0,
+            },
+        }
+
+    def visual(self) -> None:
+        return None
+
+    def collision(self) -> None:
+        return None
+
+
+class SparseSkinFrameJoint:
+    """Fixed joint attaching a sparse-skin frame to a finger link."""
+
+    def __init__(
+        self,
+        joint_name: str,
+        parent_link: str,
+        child_link: str,
+        xyz: list[float],
+        rpy: list[float],
+    ):
+        self._joint_name = joint_name
+        self._parent_link = parent_link
+        self._child_link = child_link
+        self._xyz = xyz
+        self._rpy = rpy
+
+    def joint_name(self) -> str:
+        return self._joint_name
+
+    def joint_type(self) -> str:
+        return "fixed"
+
+    def origin(self) -> dict[str, Any]:
+        return {"xyz": self._xyz, "rpy": self._rpy}
+
+    def parent_link_name(self) -> str:
+        return self._parent_link
+
+    def child_link_name(self) -> str:
+        return self._child_link
+
+    def axis(self) -> list[float]:
+        return [0.0, 0.0, 0.0]
+
+    def limit(self) -> None:
+        return None
+
+
+def _sparseskin_frames(prefix: str) -> tuple[list[Any], list[Any]]:
+    """Dummy links + fixed joints for finger sparse-skin frames."""
+    tip_suffix = _FINGERTIP_SS_SUFFIX.get(prefix, "1")
+    tip_name = f"fingertip_ss_{prefix}_{tip_suffix}"
+
+    specs = [
+        (
+            f"44_ss_{prefix}_1",
+            f"{prefix}_pip",
+            [-0.0113381, 0.0245413, 0.023],
+            [0.0, 0.0, -1.5708],
+        ),
+        (
+            f"44_ss_{prefix}_2",
+            f"{prefix}_dip",
+            [0.045226, 0.0095, -0.0259],
+            [1.5708, 0.0, 3.14159],
+        ),
+        (
+            tip_name,
+            f"{prefix}_fingertip",
+            list(_FINGERTIP_SS_XYZ),
+            list(_FINGERTIP_SS_RPY),
+        ),
+    ]
+
+    links: list[Any] = []
+    joints: list[Any] = []
+    for frame_name, parent, xyz, rpy in specs:
+        links.append(SparseSkinFrameLink(frame_name))
+        joints.append(
+            SparseSkinFrameJoint(
+                joint_name=f"{frame_name}_frame",
+                parent_link=parent,
+                child_link=frame_name,
+                xyz=xyz,
+                rpy=rpy,
+            )
+        )
+    return links, joints
+
+
 @dataclass(frozen=True)
 class Finger:
     prefix: str
@@ -329,7 +446,9 @@ class Finger:
     joints: list[Any]
 
 
-def generate_finger(prefix: str, offset: float, teleop = False) -> Finger:
+def generate_finger(
+    prefix: str, offset: float, teleop: bool = False, sparseskin: bool = False
+) -> Finger:
   
     joint_config = load_joint_config(JOINT_CONFIG_FILE)["leapXela"]["sim"]["fingers"]
     links = [MCPLink(prefix), PIPLink(prefix), DIPLink(prefix), FingertipLink(prefix)]
@@ -344,6 +463,11 @@ def generate_finger(prefix: str, offset: float, teleop = False) -> Finger:
         links += [RELATIPLink(prefix)]
         joints += [RELATIPJOINT(prefix, offset)]
 
+    if sparseskin:
+        ss_links, ss_joints = _sparseskin_frames(prefix)
+        links += ss_links
+        joints += ss_joints
+
     return Finger(prefix, links, joints)
 
 
@@ -351,23 +475,15 @@ def link_urdf(link: Any) -> str:
     inertial = link.inertial()
     visual = link.visual()
     collision = link.collision()
-    
-    if "mesh" in visual["geometry"].keys():
-        mesh_visual_xml = f"""<mesh filename="{visual["geometry"]["mesh"]["filename"]}"/>"""
-    else:
-        mesh_visual_xml = f"""<sphere radius="{visual["geometry"]["sphere"]["radius"]}"/>"""
-    if "mesh" in collision["geometry"].keys():
-        mesh_collision_xml = f"""<mesh filename="{collision["geometry"]["mesh"]["filename"]}"/>"""
-    else:
-        mesh_collision_xml = f"""<sphere radius="{collision["geometry"]["sphere"]["radius"]}"/>"""
 
-    return f"""
-  <link name="{link.link_name()}">
-    <inertial>
-      <origin xyz="{list_to_string(inertial["origin"]["xyz"])}" rpy="{list_to_string(inertial["origin"]["rpy"])}"/>
-      <mass value="{inertial["mass"]}"/>
-      <inertia ixx="{inertial["inertia"]["ixx"]}" ixy="{inertial["inertia"]["ixy"]}" ixz="{inertial["inertia"]["ixz"]}" iyy="{inertial["inertia"]["iyy"]}" iyz="{inertial["inertia"]["iyz"]}" izz="{inertial["inertia"]["izz"]}"/>
-    </inertial>
+    visual_xml = ""
+    collision_xml = ""
+    if visual is not None:
+        if "mesh" in visual["geometry"].keys():
+            mesh_visual_xml = f"""<mesh filename="{visual["geometry"]["mesh"]["filename"]}"/>"""
+        else:
+            mesh_visual_xml = f"""<sphere radius="{visual["geometry"]["sphere"]["radius"]}"/>"""
+        visual_xml = f"""
     <visual>
       <origin xyz="{list_to_string(visual["origin"]["xyz"])}" rpy="{list_to_string(visual["origin"]["rpy"])}"/>
       <geometry>
@@ -376,13 +492,27 @@ def link_urdf(link: Any) -> str:
       <material name="{visual["material"]["name"]}">
         <color rgba="{list_to_string(visual["material"]["color"]["rgba"])}"/>
       </material>
-    </visual>
+    </visual>"""
+    if collision is not None:
+        if "mesh" in collision["geometry"].keys():
+            mesh_collision_xml = f"""<mesh filename="{collision["geometry"]["mesh"]["filename"]}"/>"""
+        else:
+            mesh_collision_xml = f"""<sphere radius="{collision["geometry"]["sphere"]["radius"]}"/>"""
+        collision_xml = f"""
     <collision>
       <origin xyz="{list_to_string(collision["origin"]["xyz"])}" rpy="{list_to_string(collision["origin"]["rpy"])}"/>
       <geometry>
         {mesh_collision_xml}
       </geometry>
-    </collision>
+    </collision>"""
+
+    return f"""
+  <link name="{link.link_name()}">
+    <inertial>
+      <origin xyz="{list_to_string(inertial["origin"]["xyz"])}" rpy="{list_to_string(inertial["origin"]["rpy"])}"/>
+      <mass value="{inertial["mass"]}"/>
+      <inertia ixx="{inertial["inertia"]["ixx"]}" ixy="{inertial["inertia"]["ixy"]}" ixz="{inertial["inertia"]["ixz"]}" iyy="{inertial["inertia"]["iyy"]}" iyz="{inertial["inertia"]["iyz"]}" izz="{inertial["inertia"]["izz"]}"/>
+    </inertial>{visual_xml}{collision_xml}
   </link>
 """.rstrip(
         "\n"
@@ -436,10 +566,27 @@ def write_finger_urdf(file_path: str, finger: Finger) -> None:
 
 
 if __name__ == "__main__":
+    import argparse
     import os
 
-    finger = generate_finger("rf", 0.0)
-    out_path = os.environ.get("OUT") or "finger.urdf"
+    parser = argparse.ArgumentParser(description="Generate finger URDF.")
+    parser.add_argument("--prefix", default="rf", help="Finger prefix (rf/mf/if)")
+    parser.add_argument(
+        "--sparseskin",
+        action="store_true",
+        default=False,
+        help="Include sparse-skin sensor frames on the finger",
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        default=None,
+        help="Output URDF path (default: OUT env or finger.urdf)",
+    )
+    args = parser.parse_args()
+
+    finger = generate_finger(args.prefix, 0.0, sparseskin=args.sparseskin)
+    out_path = args.out or os.environ.get("OUT") or "finger.urdf"
     write_finger_urdf(out_path, finger)
     print(f"Wrote {out_path}")
 
