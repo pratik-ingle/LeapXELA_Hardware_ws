@@ -8,8 +8,8 @@ except ImportError:  # pragma: no cover
 
 def get_sparseskin_frames() -> str:
     """Dummy links + fixed joints for sparse-skin sensor frames on the palm."""
-    return """  <!-- Frame 46_ss_1 (dummy link + fixed joint) -->
-  <link name="46_ss_1">
+    return """  <!-- Frame ahr_palm_3_4x6_palm_link (dummy link + fixed joint) -->
+  <link name="ahr_palm_3_4x6_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -17,14 +17,14 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="46_ss_1_frame" type="fixed">
+  <joint name="ahr_palm_3_4x6_palm_link_frame" type="fixed">
     <origin xyz="-0.0269 -0.027 0.048" rpy="1.5708 0 -0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_1"/>
+    <child link="ahr_palm_3_4x6_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <!-- Frame 46_ss_3 (dummy link + fixed joint) -->
-  <link name="46_ss_3">
+  <!-- Frame ahr_palm_1_4x6_palm_link (dummy link + fixed joint) -->
+  <link name="ahr_palm_1_4x6_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -32,14 +32,14 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="46_ss_3_frame" type="fixed">
+  <joint name="ahr_palm_1_4x6_palm_link_frame" type="fixed">
     <origin xyz="-0.0269 -0.027 0.0811" rpy="1.5708 0 -0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_3"/>
+    <child link="ahr_palm_1_4x6_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <!-- Frame 46_ss_2 (dummy link + fixed joint) -->
-  <link name="46_ss_2">
+  <!-- Frame ahr_palm_2_4x6_palm_link (dummy link + fixed joint) -->
+  <link name="ahr_palm_2_4x6_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -47,16 +47,16 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="46_ss_2_frame" type="fixed">
+  <joint name="ahr_palm_2_4x6_palm_link_frame" type="fixed">
     <origin xyz="0.0654 -0.027 0.1113" rpy="-1.5708 -0 -3.14159"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_2"/>
+    <child link="ahr_palm_2_4x6_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>
 
 
-  <!-- Frame 44_ss_rf_3 (dummy link + fixed joint) -->
-  <link name="44_ss_rf_3">
+  <!-- Frame 9B_4x4_palm_link (dummy link + fixed joint) -->
+  <link name="9B_4x4_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -64,14 +64,14 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="44_ss_rf_3_frame" type="fixed">
+  <joint name="9B_4x4_palm_link_frame" type="fixed">
     <origin xyz="-0.04897 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_rf_3"/>
+    <child link="9B_4x4_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <!-- Frame 44_ss_mf_3 (dummy link + fixed joint) -->
-  <link name="44_ss_mf_3">
+  <!-- Frame 5B_4x4_palm_link (dummy link + fixed joint) -->
+  <link name="5B_4x4_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -79,14 +79,14 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="44_ss_mf_3_frame" type="fixed">
+  <joint name="5B_4x4_palm_link_frame" type="fixed">
     <origin xyz="-0.00352 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_mf_3"/>
+    <child link="5B_4x4_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <!-- Frame 44_ss_if_3 (dummy link + fixed joint) -->
-  <link name="44_ss_if_3">
+  <!-- Frame 1B_4x4_palm_link (dummy link + fixed joint) -->
+  <link name="1B_4x4_palm_link">
     <origin xyz="0 0 0" rpy="0 -0 0"/>
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -94,10 +94,10 @@ def get_sparseskin_frames() -> str:
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
-  <joint name="44_ss_if_3_frame" type="fixed">
+  <joint name="1B_4x4_palm_link_frame" type="fixed">
     <origin xyz="0.04193 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
     <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_if_3"/>
+    <child link="1B_4x4_palm_link"/>
     <axis xyz="0 0 0"/>
   </joint>"""
 

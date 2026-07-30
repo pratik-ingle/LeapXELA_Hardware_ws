@@ -392,19 +392,19 @@ def _sparseskin_frames() -> tuple[list[Any], list[Any]]:
     """Dummy links + fixed joints for thumb sparse-skin frames."""
     specs = [
         (
-            "44_ss_th_1",
+            "link_14_4x4_palm_link",
             "th_mcp",
             [-0.01, 0.0201, 0.0032],
             [1.5708, 0.0, -1.5708],
         ),
         (
-            "th_fingertip",
+            "3aftc_palm_link",
             "th_ipl",
             [-0.0139201, -0.0300003, 0.014504],
             [3.14159, -1.5708, 0.0],
         ),
         (
-            "44_ss_th_2",
+            "link_15_4x4_palm_link",
             "th_ipl",
             [0.01, -0.0201, 0.0032],
             [1.5708, 0.0, 1.5708],

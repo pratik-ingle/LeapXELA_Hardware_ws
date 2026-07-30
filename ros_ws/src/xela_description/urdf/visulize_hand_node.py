@@ -8,12 +8,24 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 SS_LINK_SUBSTRING = "_ss_"
+PALM_LINK_PREFIX = "ahr_palm_"
+KNUCKLE_LINK_SUFFIX = "_4x4_palm_link"
 FINGERTIP_SS_SUBSTRING = "fingertip_ss"
+AFTC_SUBSTRING = "aftc"
 EXTRA_FRAME_LINKS = ("th_fingertip",)
 DEFAULT_AXIS_LENGTH = 0.015
 FINGERTIP_AXIS_LENGTH = 0.048
 DEFAULT_LINE_WIDTH = 2.0
 FINGERTIP_LINE_WIDTH = 4.8
+
+
+def _is_sparseskin_frame(link_name: str) -> bool:
+    return (
+        SS_LINK_SUBSTRING in link_name
+        or link_name.startswith(PALM_LINK_PREFIX)
+        or link_name.endswith(KNUCKLE_LINK_SUFFIX)
+        or AFTC_SUBSTRING in link_name
+    )
 
 
 def _default_urdf_path(sparseskin: bool = False) -> str:
@@ -78,7 +90,11 @@ def _make_pybullet_ready_urdf(source_urdf: Path) -> Path:
 
 
 def _is_large_frame(link_name: str) -> bool:
-    return FINGERTIP_SS_SUBSTRING in link_name or link_name == "th_fingertip"
+    return (
+        FINGERTIP_SS_SUBSTRING in link_name
+        or AFTC_SUBSTRING in link_name
+        or link_name == "th_fingertip"
+    )
 
 
 def _axis_length(link_name: str) -> float:
@@ -124,7 +140,7 @@ def _get_frame_link_indices(p, body_id: int) -> Dict[str, int]:
     frame_links = {
         name: index
         for name, index in link_name_to_index.items()
-        if SS_LINK_SUBSTRING in name
+        if _is_sparseskin_frame(name)
     }
     for name in EXTRA_FRAME_LINKS:
         if name in link_name_to_index:

@@ -6,12 +6,22 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 SS_LINK_SUBSTRING = "_ss_"
+PALM_LINK_PREFIX = "ahr_palm_"
+KNUCKLE_LINK_SUFFIX = "_4x4_palm_link"
 DEFAULT_AXIS_LENGTH = 0.015
 DEFAULT_LINE_WIDTH = 2.0
 
 
 def _default_urdf_path() -> str:
     return str(Path(__file__).resolve().parent / "palm.urdf")
+
+
+def _is_sparseskin_frame(link_name: str) -> bool:
+    return (
+        SS_LINK_SUBSTRING in link_name
+        or link_name.startswith(PALM_LINK_PREFIX)
+        or link_name.endswith(KNUCKLE_LINK_SUFFIX)
+    )
 
 
 def _axis_endpoints(
@@ -40,16 +50,16 @@ def _get_ss_link_indices(p, body_id: int) -> Dict[str, int]:
     for joint_index in range(p.getNumJoints(body_id)):
         info = p.getJointInfo(body_id, joint_index)
         child_name = info[12].decode("utf-8")
-        if SS_LINK_SUBSTRING in child_name:
+        if _is_sparseskin_frame(child_name):
             link_indices[child_name] = joint_index
     return link_indices
 
 
 def _draw_ss_frames(p, body_id: int) -> None:
-    """Draw RGB axes + labels on sparse-skin (_ss_) links."""
+    """Draw RGB axes + labels on sparse-skin / palm sensor frame links."""
     link_indices = _get_ss_link_indices(p, body_id)
     if not link_indices:
-        print("Warning: sparseskin=True but no '_ss_' links found in URDF")
+        print("Warning: sparseskin=True but no sparse-skin frame links found in URDF")
         return
 
     print(f"Drawing frames on {len(link_indices)} sparseskin links:")

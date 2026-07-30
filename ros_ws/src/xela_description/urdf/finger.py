@@ -399,18 +399,24 @@ class SparseSkinFrameJoint:
 
 def _sparseskin_frames(prefix: str) -> tuple[list[Any], list[Any]]:
     """Dummy links + fixed joints for finger sparse-skin frames."""
-    tip_suffix = _FINGERTIP_SS_SUFFIX.get(prefix, "1")
-    tip_name = f"fingertip_ss_{prefix}_{tip_suffix}"
+    # Sensor IDs aligned with Allegro/XELA naming (if / mf / rf).
+    prefixes_by_finger = {
+        "rf": {"A": 9, "C": 10, "Tip": 2},
+        "mf": {"A": 5, "C": 6, "Tip": 1},
+        "if": {"A": 1, "C": 2, "Tip": 0},
+    }
+    prefixes = prefixes_by_finger[prefix]
+    tip_name = f"{prefixes['Tip']}aftc_palm_link"
 
     specs = [
         (
-            f"44_ss_{prefix}_1",
+            f"link_{prefixes['A']}A_4x4_palm_link",
             f"{prefix}_pip",
             [-0.0113381, 0.0245413, 0.023],
             [0.0, 0.0, -1.5708],
         ),
         (
-            f"44_ss_{prefix}_2",
+            f"link_{prefixes['C']}_4x4_palm_link",
             f"{prefix}_dip",
             [0.045226, 0.0095, -0.0259],
             [1.5708, 0.0, 3.14159],
