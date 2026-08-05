@@ -38,8 +38,10 @@ class HandController(Node):
         self._qt_app = None
         self._window = None
         self._spin_timer = None
+        self._publish_timer = None
         self._sliders = {}
         self._value_labels = {}
+        self._publish_hz = 50.0
 
     def get_joint_limits(self) -> dict:
         joint_limits = {}
@@ -124,7 +126,6 @@ class HandController(Node):
                 val = self._slider_to_value(v, jlo, jhi, steps)
                 self._joint_positions[jn] = val
                 self._value_labels[jn].setText(f"{val:.4f}  [{jlo:.4f}, {jhi:.4f}]")
-                self.publish_joint_state()
 
             slider.valueChanged.connect(on_change)
 
@@ -143,6 +144,13 @@ class HandController(Node):
         self._spin_timer.setInterval(10)
         self._spin_timer.timeout.connect(lambda: rclpy.spin_once(self, timeout_sec=0.0))
         self._spin_timer.start()
+
+        # Continuously republish the current slider command so late subscribers
+        # and the simulator keep receiving the held pose.
+        self._publish_timer = QtCore.QTimer()
+        self._publish_timer.setInterval(max(1, int(round(1000.0 / self._publish_hz))))
+        self._publish_timer.timeout.connect(self.publish_joint_state)
+        self._publish_timer.start()
 
         self._window.resize(900, 600)
         self._window.show()
