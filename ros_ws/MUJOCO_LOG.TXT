@@ -1,0 +1,6 @@
+ERROR mjv_cameraFrame (engine_vis_visualize.c:520) Mon Aug  3 14:30:11 2026: unknown camera type
+
+ERROR mjv_cameraFrame (engine_vis_visualize.c:520) Mon Aug  3 14:37:44 2026: unknown camera type
+
+ERROR mjv_cameraFrame (engine_vis_visualize.c:520) Mon Aug  3 14:39:22 2026: unknown camera type
+
