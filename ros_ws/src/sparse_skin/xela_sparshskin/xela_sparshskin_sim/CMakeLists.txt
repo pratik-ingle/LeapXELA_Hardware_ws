@@ -12,6 +12,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(mujoco 3.2.0 REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Texel.msg"
@@ -23,6 +24,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 add_executable(process_hand_sensors_into_pointcloud
   src/process_hand_sensors_into_pointcloud.cc
   src/camera_control.cc
+  src/stickyskin.cc
+  src/object.cc
 )
 
 target_include_directories(process_hand_sensors_into_pointcloud PUBLIC
@@ -39,7 +42,7 @@ ament_target_dependencies(process_hand_sensors_into_pointcloud
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
 target_link_libraries(process_hand_sensors_into_pointcloud
   "${cpp_typesupport_target}"
-  dl
+  mujoco::mujoco
   glfw
   OpenGL::GL
 )

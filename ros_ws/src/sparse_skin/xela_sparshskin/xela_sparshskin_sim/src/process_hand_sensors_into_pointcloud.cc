@@ -18,6 +18,8 @@
 #include <GLFW/glfw3.h>
 
 #include <xela_sparshskin_sim/camera_control.hpp>
+#include <xela_sparshskin_sim/object.hpp>
+#include <xela_sparshskin_sim/stickyskin.hpp>
 
 #include <algorithm>
 #include <array>
@@ -26,7 +28,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <dlfcn.h>
 #include <fstream>
 #include <filesystem>
 #include <limits>
@@ -372,9 +373,9 @@ std::unordered_map<std::string, int32_t> build_flex_vertex_taxel_id_map(const Js
 
 struct MujocoApi
 {
-  void * handle{nullptr};
-
   mjModel * (*mj_loadXML)(const char *, const mjVFS *, char *, int){nullptr};
+  mjModel * (*mj_compile)(mjSpec *, const mjVFS *){nullptr};
+  void (*mj_deleteSpec)(mjSpec *){nullptr};
   mjData * (*mj_makeData)(const mjModel *){nullptr};
   void (*mj_deleteModel)(mjModel *){nullptr};
   void (*mj_deleteData)(mjData *){nullptr};
@@ -387,82 +388,53 @@ struct MujocoApi
   void (*mjv_defaultCamera)(mjvCamera *){nullptr};
   void (*mjv_defaultOption)(mjvOption *){nullptr};
   void (*mjv_defaultScene)(mjvScene *){nullptr};
+  void (*mjv_defaultPerturb)(mjvPerturb *){nullptr};
   void (*mjr_defaultContext)(mjrContext *){nullptr};
   void (*mjv_makeScene)(const mjModel *, mjvScene *, int){nullptr};
   void (*mjr_makeContext)(const mjModel *, mjrContext *, int){nullptr};
   void (*mjv_moveCamera)(const mjModel *, int, mjtNum, mjtNum, mjvCamera *){nullptr};
+  void (*mjv_applyPerturbForce)(const mjModel *, mjData *, const mjvPerturb *){nullptr};
   void (*mjv_initGeom)(mjvGeom *, int, const mjtNum[3], const mjtNum[3], const mjtNum[9], const float[4]){
     nullptr};
   void (*mjv_connector)(mjvGeom *, int, mjtNum, const mjtNum[3], const mjtNum[3]){nullptr};
   void (*mjv_updateScene)(
     const mjModel *, mjData *, const mjvOption *, const mjvPerturb *, mjvCamera *, int, mjvScene *){nullptr};
-  void (*mjr_render)(mjrRect, const mjvScene *, const mjrContext *){nullptr};
+  void (*mjr_render)(mjrRect, mjvScene *, const mjrContext *){nullptr};
   void (*mjr_freeContext)(mjrContext *){nullptr};
   void (*mjv_freeScene)(mjvScene *){nullptr};
 
-  static void * open_library()
-  {
-    // Try common SONAMEs in order.
-    const char * candidates[] = {"libmujoco.so", "libmujoco.so.3", "libmujoco.so.3.8.1"};
-    for (const char * name : candidates) {
-      if (void * h = dlopen(name, RTLD_NOW | RTLD_LOCAL)) {
-        return h;
-      }
-    }
-    return nullptr;
-  }
-
-  template <typename Fn>
-  static Fn load_symbol(void * h, const char * sym)
-  {
-    dlerror();  // clear
-    void * p = dlsym(h, sym);
-    const char * err = dlerror();
-    if (err != nullptr || p == nullptr) {
-      throw std::runtime_error(std::string("Failed to load symbol '") + sym + "': " + (err ? err : ""));
-    }
-    return reinterpret_cast<Fn>(p);
-  }
-
   void load()
   {
-    handle = open_library();
-    if (!handle) {
-      const char * err = dlerror();
-      throw std::runtime_error(std::string("Failed to dlopen MuJoCo library: ") + (err ? err : "(unknown error)"));
-    }
+    // Bind directly to the linked MuJoCo symbols. stickyskin.cc / object.cc
+    // already link libmujoco; a second dlopen re-registers resource encoders
+    // and aborts with: resource encoder 'application/zip' is already registered.
+    mj_loadXML = ::mj_loadXML;
+    mj_compile = ::mj_compile;
+    mj_deleteSpec = ::mj_deleteSpec;
+    mj_makeData = ::mj_makeData;
+    mj_deleteModel = ::mj_deleteModel;
+    mj_deleteData = ::mj_deleteData;
+    mj_forward = ::mj_forward;
+    mj_step = ::mj_step;
+    mj_name2id = ::mj_name2id;
+    mj_id2name = ::mj_id2name;
+    mj_contactForce = ::mj_contactForce;
 
-    mj_loadXML = load_symbol<decltype(mj_loadXML)>(handle, "mj_loadXML");
-    mj_makeData = load_symbol<decltype(mj_makeData)>(handle, "mj_makeData");
-    mj_deleteModel = load_symbol<decltype(mj_deleteModel)>(handle, "mj_deleteModel");
-    mj_deleteData = load_symbol<decltype(mj_deleteData)>(handle, "mj_deleteData");
-    mj_forward = load_symbol<decltype(mj_forward)>(handle, "mj_forward");
-    mj_step = load_symbol<decltype(mj_step)>(handle, "mj_step");
-    mj_name2id = load_symbol<decltype(mj_name2id)>(handle, "mj_name2id");
-    mj_id2name = load_symbol<decltype(mj_id2name)>(handle, "mj_id2name");
-    mj_contactForce = load_symbol<decltype(mj_contactForce)>(handle, "mj_contactForce");
-
-    mjv_defaultCamera = load_symbol<decltype(mjv_defaultCamera)>(handle, "mjv_defaultCamera");
-    mjv_defaultOption = load_symbol<decltype(mjv_defaultOption)>(handle, "mjv_defaultOption");
-    mjv_defaultScene = load_symbol<decltype(mjv_defaultScene)>(handle, "mjv_defaultScene");
-    mjr_defaultContext = load_symbol<decltype(mjr_defaultContext)>(handle, "mjr_defaultContext");
-    mjv_makeScene = load_symbol<decltype(mjv_makeScene)>(handle, "mjv_makeScene");
-    mjr_makeContext = load_symbol<decltype(mjr_makeContext)>(handle, "mjr_makeContext");
-    mjv_moveCamera = load_symbol<decltype(mjv_moveCamera)>(handle, "mjv_moveCamera");
-    mjv_initGeom = load_symbol<decltype(mjv_initGeom)>(handle, "mjv_initGeom");
-    mjv_connector = load_symbol<decltype(mjv_connector)>(handle, "mjv_connector");
-    mjv_updateScene = load_symbol<decltype(mjv_updateScene)>(handle, "mjv_updateScene");
-    mjr_render = load_symbol<decltype(mjr_render)>(handle, "mjr_render");
-    mjr_freeContext = load_symbol<decltype(mjr_freeContext)>(handle, "mjr_freeContext");
-    mjv_freeScene = load_symbol<decltype(mjv_freeScene)>(handle, "mjv_freeScene");
-  }
-
-  ~MujocoApi()
-  {
-    if (handle) {
-      dlclose(handle);
-      handle = nullptr;
-    }
+    mjv_defaultCamera = ::mjv_defaultCamera;
+    mjv_defaultOption = ::mjv_defaultOption;
+    mjv_defaultScene = ::mjv_defaultScene;
+    mjv_defaultPerturb = ::mjv_defaultPerturb;
+    mjr_defaultContext = ::mjr_defaultContext;
+    mjv_makeScene = ::mjv_makeScene;
+    mjr_makeContext = ::mjr_makeContext;
+    mjv_moveCamera = ::mjv_moveCamera;
+    mjv_applyPerturbForce = ::mjv_applyPerturbForce;
+    mjv_initGeom = ::mjv_initGeom;
+    mjv_connector = ::mjv_connector;
+    mjv_updateScene = ::mjv_updateScene;
+    mjr_render = ::mjr_render;
+    mjr_freeContext = ::mjr_freeContext;
+    mjv_freeScene = ::mjv_freeScene;
   }
 };
 
@@ -505,7 +477,7 @@ public:
     }
     render_hz_ = static_cast<double>(render_hz);
     taxel_perturbation_local_frame_ = declare_parameter<bool>("taxel_perturbation_local_frame", true);
-    show_mujoco_force_overlay_ = declare_parameter<bool>("show_mujoco_force_overlay", true);
+    show_mujoco_force_overlay_ = declare_parameter<bool>("show_mujoco_force_overlay", false);
     mujoco_force_arrow_scale_ = declare_parameter<double>("mujoco_force_arrow_scale", 0.020);
     mujoco_force_arrow_width_ = declare_parameter<double>("mujoco_force_arrow_width", 0.0030);
     mujoco_force_max_length_ = declare_parameter<double>("mujoco_force_max_length", 0.040);
@@ -1081,6 +1053,11 @@ private:
       data_->xfrc_applied[6 * body_id + 2] = kv.second[2];
       // torques remain zero
     }
+
+    // MuJoCo simulate.cc-style mouse pull/rotate on the selected body.
+    if (pert_.select > 0 && pert_.active) {
+      api_.mjv_applyPerturbForce(model_, data_, &pert_);
+    }
   }
 
   void build_qpos_index_map()
@@ -1103,45 +1080,30 @@ private:
 
   void on_joint_state(sensor_msgs::msg::JointState::ConstSharedPtr msg)
   {
-    if (!msg || msg->name.empty() || msg->position.empty() || !data_) {
+    if (!msg || msg->name.empty() || msg->position.empty()) {
       return;
     }
     const size_t n = std::min(msg->name.size(), msg->position.size());
 
-    std::lock_guard<std::mutex> lk(mj_mutex_);
-    bool updated_any = false;
-    std::vector<std::string> changed_joints;
-    changed_joints.reserve(n);
+    // Latch only — do not touch MuJoCo here. Slider spam used to stall the
+    // viewer by running mj_forward on this callback thread.
+    std::lock_guard<std::mutex> lk(cmd_mutex_);
     for (size_t i = 0; i < n; ++i) {
       latest_joint_cmd_[msg->name[i]] = msg->position[i];
-      const bool changed = set_joint_qpos_locked(msg->name[i], msg->position[i]);
-      updated_any |= changed;
-      if (changed) {
-        changed_joints.push_back(msg->name[i]);
-      }
-    }
-
-    if (updated_any) {
-      apply_external_forces_locked();
-      api_.mj_forward(model_, data_);
-
-      std::sort(changed_joints.begin(), changed_joints.end());
-      changed_joints.erase(std::unique(changed_joints.begin(), changed_joints.end()), changed_joints.end());
-      for (const auto & jname : changed_joints) {
-        if (auto pose = get_body_world_pose_from_joint_locked(jname)) {
-          const std::string key = !pose->body_name.empty() ? pose->body_name : jname;
-          latest_body_pose_by_body_name_[key] = *pose;
-        }
-      }
-      publish_touch_point_cloud_locked();
     }
   }
 
-  void apply_latest_joint_commands_locked()
+  // Caller must hold mj_mutex_.
+  void update_touch_point_cloud_from_joints_locked(
+    const std::unordered_map<std::string, double> & joint_cmds)
   {
-    for (const auto & kv : latest_joint_cmd_) {
-      set_joint_qpos_locked(kv.first, kv.second);
+    for (const auto & kv : joint_cmds) {
+      if (auto pose = get_body_world_pose_from_joint_locked(kv.first)) {
+        const std::string key = !pose->body_name.empty() ? pose->body_name : kv.first;
+        latest_body_pose_by_body_name_[key] = *pose;
+      }
     }
+    publish_touch_point_cloud_locked();
   }
 
   bool set_joint_qpos_locked(const std::string & joint_name, double desired_qpos)
@@ -1185,25 +1147,125 @@ private:
 
   void load_mujoco_model(const std::string & scene_path)
   {
-    // MuJoCo resolves <include file="..."/> relative to current working directory in some setups.
-    // To make includes robust, temporarily set CWD to the directory containing scene.xml.
-    const fs::path scene_fs(scene_path);
-    const fs::path scene_dir = scene_fs.parent_path();
-    const fs::path old_cwd = fs::current_path();
+    xela_sparshskin_sim::StickySkinParams sticky_params;
+    sticky_params.adhesion = declare_parameter<double>("palm_adhesion", 5.0);
+    sticky_params.gap = declare_parameter<double>("palm_adhesion_gap", 0.002);
 
     char err[1024] = {0};
+    mjSpec * spec = xela_sparshskin_sim::make_sticky_skin_spec(
+      scene_path, sticky_params, err, sizeof(err));
+    if (!spec) {
+      throw std::runtime_error(std::string("make_sticky_skin_spec failed: ") + err);
+    }
+
+    const std::string object_arg = declare_parameter<std::string>("object", "");
+    (void)declare_parameter<std::string>("object_type", "cube");
+    const bool add_object = !object_arg.empty();
+    const std::string object_type = object_arg;
+    const std::vector<double> object_size_param =
+      declare_parameter<std::vector<double>>("object_size", {0.025, 0.025, 0.025});
+    const double object_mass = declare_parameter<double>("object_mass", 0.1);
+    const std::vector<double> object_pos_param =
+      declare_parameter<std::vector<double>>("object_pos", std::vector<double>{});
+
+    if (add_object) {
+      std::array<double, 3> object_size{0.025, 0.025, 0.025};
+      if (object_size_param.size() == 1) {
+        object_size = {object_size_param[0], object_size_param[0], object_size_param[0]};
+      } else if (object_size_param.size() >= 3) {
+        object_size = {object_size_param[0], object_size_param[1], object_size_param[2]};
+      } else if (!object_size_param.empty()) {
+        api_.mj_deleteSpec(spec);
+        throw std::runtime_error("Parameter 'object_size' must have 1 or 3 elements");
+      }
+
+      xela_sparshskin_sim::create_object object_builder(object_type, object_size, object_mass);
+      mjSpec * object_spec = object_builder.make_spec();
+      if (!object_spec) {
+        api_.mj_deleteSpec(spec);
+        throw std::runtime_error("create_object::make_spec failed");
+      }
+
+      mjsBody * world = mjs_findBody(spec, "world");
+      if (!world) {
+        api_.mj_deleteSpec(object_spec);
+        api_.mj_deleteSpec(spec);
+        throw std::runtime_error("Scene mjSpec has no world body");
+      }
+
+      std::array<double, 3> spawn_pos{0.02, 0.12, object_builder.spawn_height()};
+      if (object_pos_param.size() >= 3) {
+        spawn_pos = {object_pos_param[0], object_pos_param[1], object_pos_param[2]};
+      }
+
+      mjsFrame * spawn_frame = mjs_addFrame(world, /*parentframe=*/nullptr);
+      if (!spawn_frame) {
+        api_.mj_deleteSpec(object_spec);
+        api_.mj_deleteSpec(spec);
+        throw std::runtime_error("Failed to add object spawn frame");
+      }
+      mjs_setName(spawn_frame->element, "object_spawn");
+      spawn_frame->pos[0] = spawn_pos[0];
+      spawn_frame->pos[1] = spawn_pos[1];
+      spawn_frame->pos[2] = spawn_pos[2];
+      spawn_frame->quat[0] = 1.0;
+      spawn_frame->quat[1] = 0.0;
+      spawn_frame->quat[2] = 0.0;
+      spawn_frame->quat[3] = 0.0;
+
+      mjsBody * object_body = mjs_findBody(object_spec, "object");
+      // Deep-copy on attach so the child spec can be freed immediately after.
+      mjs_setDeepCopy(spec, /*deepcopy=*/1);
+      if (!object_body ||
+        mjs_attach(spawn_frame->element, object_body->element, /*prefix=*/"", /*suffix=*/"") ==
+        nullptr)
+      {
+        api_.mj_deleteSpec(object_spec);
+        api_.mj_deleteSpec(spec);
+        throw std::runtime_error("Failed to attach object mjSpec to scene");
+      }
+      api_.mj_deleteSpec(object_spec);
+      object_spec = nullptr;
+      has_free_object_ = true;
+
+      RCLCPP_INFO(
+        get_logger(),
+        "Will add free object type='%s' size=[%.4f %.4f %.4f] mass=%.3f at [%.3f %.3f %.3f]",
+        object_builder.type_name().c_str(),
+        object_builder.size()[0], object_builder.size()[1], object_builder.size()[2],
+        object_builder.mass(),
+        spawn_pos[0], spawn_pos[1], spawn_pos[2]);
+    } else {
+      has_free_object_ = false;
+      RCLCPP_INFO(get_logger(), "No object requested (launch object:=... to spawn one)");
+    }
+
+    // Mesh/include paths in the MJCF are relative to the scene directory.
+    const fs::path scene_dir = fs::path(scene_path).parent_path();
+    const fs::path old_cwd = fs::current_path();
     try {
       fs::current_path(scene_dir);
-      model_ = api_.mj_loadXML(scene_path.c_str(), /*vfs=*/nullptr, err, sizeof(err));
+      model_ = api_.mj_compile(spec, /*vfs=*/nullptr);
       fs::current_path(old_cwd);
     } catch (...) {
       fs::current_path(old_cwd);
+      api_.mj_deleteSpec(spec);
       throw;
     }
 
     if (!model_) {
-      throw std::runtime_error(std::string("mj_loadXML failed: ") + err);
+      const char * cerr = mjs_getError(spec);
+      const std::string msg = cerr && cerr[0] ? cerr : "(unknown compile error)";
+      api_.mj_deleteSpec(spec);
+      throw std::runtime_error(std::string("mj_compile failed: ") + msg);
     }
+    api_.mj_deleteSpec(spec);
+    spec = nullptr;
+
+    RCLCPP_INFO(
+      get_logger(),
+      "Compiled sticky-skin model (palm flex_uspa46_* adhesion=%.3f N, gap=%.4f)",
+      sticky_params.adhesion, sticky_params.gap);
 
     data_ = api_.mj_makeData(model_);
     if (!data_) {
@@ -1252,6 +1314,7 @@ private:
     api_.mjv_defaultCamera(&cam_);
     api_.mjv_defaultOption(&opt_);
     api_.mjv_defaultScene(&scn_);
+    api_.mjv_defaultPerturb(&pert_);
     api_.mjr_defaultContext(&con_);
 
     // Show world XYZ axes at the origin (RGB = XYZ).
@@ -1276,8 +1339,16 @@ private:
     api_.mjr_makeContext(model_, &con_, mjFONTSCALE_150);
 
     camera_control_ = std::make_unique<xela_sparshskin_sim::CameraControl>(
-      window_, model_, &cam_, api_.mjv_moveCamera, api_.mjv_defaultCamera, &mj_mutex_);
+      window_, model_, data_, &cam_, &opt_, &scn_, &pert_,
+      api_.mjv_moveCamera, api_.mjv_defaultCamera, &mj_mutex_,
+      [this](bool enabled) {
+        RCLCPP_INFO(get_logger(), "Adhesion %s (press A to toggle)", enabled ? "ON" : "OFF");
+      });
     camera_control_->install();
+
+    RCLCPP_INFO(
+      get_logger(),
+      "Mouse: drag=camera | double-click=select | Ctrl+right-drag=pull | Ctrl+left-drag=rotate | Esc=clear | A=toggle adhesion");
   }
 
   void shutdown_rendering()
@@ -1304,17 +1375,32 @@ private:
 
     {
       std::lock_guard<std::mutex> lk(mj_mutex_);
-      apply_latest_joint_commands_locked();
+      std::unordered_map<std::string, double> joint_cmds;
+      {
+        std::lock_guard<std::mutex> cmd_lk(cmd_mutex_);
+        joint_cmds = latest_joint_cmd_;
+      }
+
+      bool joints_changed = false;
+      for (const auto & kv : joint_cmds) {
+        joints_changed |= set_joint_qpos_locked(kv.first, kv.second);
+      }
       apply_external_forces_locked();
-      // Step when external forces are active so flex vertices can deform.
-      // Otherwise keep viewer-only kinematics (no time integration).
-      if (!applied_xfrc_by_body_id_.empty()) {
+      // Step when a free object is present, mouse perturb is active, or external
+      // taxel forces are active so dynamics can run.
+      const bool perturb_active = camera_control_ && camera_control_->perturb_active();
+      if (has_free_object_ || perturb_active || !applied_xfrc_by_body_id_.empty()) {
         api_.mj_step(model_, data_);
         // Hold commanded hand pose after the step so actuators/dynamics don't drift joints.
-        apply_latest_joint_commands_locked();
+        for (const auto & kv : joint_cmds) {
+          set_joint_qpos_locked(kv.first, kv.second);
+        }
         api_.mj_forward(model_, data_);
       } else {
         api_.mj_forward(model_, data_);
+      }
+      if (joints_changed || has_free_object_) {
+        update_touch_point_cloud_from_joints_locked(joint_cmds);
       }
       publish_hand_sensors_locked();
     }
@@ -1324,7 +1410,7 @@ private:
 
     {
       std::lock_guard<std::mutex> lk(mj_mutex_);
-      api_.mjv_updateScene(model_, data_, &opt_, /*pert=*/nullptr, &cam_, mjCAT_ALL, &scn_);
+      api_.mjv_updateScene(model_, data_, &opt_, &pert_, &cam_, mjCAT_ALL, &scn_);
       append_force_overlay_geoms_locked();
       api_.mjr_render(viewport, &scn_, &con_);
     }
@@ -1336,7 +1422,9 @@ private:
   MujocoApi api_;
   mjModel * model_{nullptr};
   mjData * data_{nullptr};
+  bool has_free_object_{false};
   std::mutex mj_mutex_;
+  std::mutex cmd_mutex_;  // protects latest_joint_cmd_ (callback latch, no MuJoCo)
   std::unordered_map<std::string, int> qpos_index_by_joint_name_;
   std::unordered_map<std::string, double> latest_joint_cmd_;
   std::unordered_map<std::string, BodyWorldPose> latest_body_pose_by_body_name_;
@@ -1362,6 +1450,7 @@ private:
   mjvCamera cam_{};
   mjvOption opt_{};
   mjvScene scn_{};
+  mjvPerturb pert_{};
   mjrContext con_{};
   std::unique_ptr<xela_sparshskin_sim::CameraControl> camera_control_;
 };
