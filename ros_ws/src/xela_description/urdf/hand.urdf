@@ -223,98 +223,6 @@
       </geometry>
     </collision>
   </link>
-  <!-- Frame 46_ss_1 (dummy link + fixed joint) -->
-  <link name="46_ss_1">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="46_ss_1_frame" type="fixed">
-    <origin xyz="-0.0269 -0.027 0.048" rpy="1.5708 0 -0"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_1"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <!-- Frame 46_ss_3 (dummy link + fixed joint) -->
-  <link name="46_ss_3">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="46_ss_3_frame" type="fixed">
-    <origin xyz="-0.0269 -0.027 0.0811" rpy="1.5708 0 -0"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_3"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <!-- Frame 46_ss_2 (dummy link + fixed joint) -->
-  <link name="46_ss_2">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="46_ss_2_frame" type="fixed">
-    <origin xyz="0.0654 -0.027 0.1113" rpy="-1.5708 -0 -3.14159"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="46_ss_2"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-
-
-  <!-- Frame 44_ss_rf_3 (dummy link + fixed joint) -->
-  <link name="44_ss_rf_3">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="44_ss_rf_3_frame" type="fixed">
-    <origin xyz="-0.04897 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_rf_3"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <!-- Frame 44_ss_mf_3 (dummy link + fixed joint) -->
-  <link name="44_ss_mf_3">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="44_ss_mf_3_frame" type="fixed">
-    <origin xyz="-0.00352 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_mf_3"/>
-    <axis xyz="0 0 0"/>
-  </joint>
-  <!-- Frame 44_ss_if_3 (dummy link + fixed joint) -->
-  <link name="44_ss_if_3">
-    <origin xyz="0 0 0" rpy="0 -0 0"/>
-    <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="1e-9"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="44_ss_if_3_frame" type="fixed">
-    <origin xyz="0.04193 -0.026 0.153574" rpy="1.5708 1.5708 0"/>
-    <parent link="leap_hand_xela_back_cover"/>
-    <child link="44_ss_if_3"/>
-    <axis xyz="0 0 0"/>
-  </joint>
   
   <link name="rf_mcp">
     <inertial>
@@ -408,28 +316,27 @@
     </collision>
   </link>
 
-  <link name="44_ss_rf_1">
+  <link name="rf_realtip">
     <inertial>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="1e-06"/>
+      <inertia ixx="2.5e-05" ixy="0.0" ixz="0.0" iyy="2.5e-05" iyz="0.0" izz="2.5e-05"/>
     </inertial>
-  </link>
-
-  <link name="44_ss_rf_2">
-    <inertial>
+    <visual>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
-  </link>
-
-  <link name="fingertip_ss_rf_1">
-    <inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+      <material name="ball_material">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="mf_mcp">
@@ -524,28 +431,27 @@
     </collision>
   </link>
 
-  <link name="44_ss_mf_1">
+  <link name="mf_realtip">
     <inertial>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="1e-06"/>
+      <inertia ixx="2.5e-05" ixy="0.0" ixz="0.0" iyy="2.5e-05" iyz="0.0" izz="2.5e-05"/>
     </inertial>
-  </link>
-
-  <link name="44_ss_mf_2">
-    <inertial>
+    <visual>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
-  </link>
-
-  <link name="fingertip_ss_mf_4">
-    <inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+      <material name="ball_material">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="if_mcp">
@@ -640,28 +546,27 @@
     </collision>
   </link>
 
-  <link name="44_ss_if_1">
+  <link name="if_realtip">
     <inertial>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="1e-06"/>
+      <inertia ixx="2.5e-05" ixy="0.0" ixz="0.0" iyy="2.5e-05" iyz="0.0" izz="2.5e-05"/>
     </inertial>
-  </link>
-
-  <link name="44_ss_if_2">
-    <inertial>
+    <visual>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
-  </link>
-
-  <link name="fingertip_ss_if_4">
-    <inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+      <material name="ball_material">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+    </collision>
   </link>
   
   <link name="cmc">
@@ -799,34 +704,33 @@
     
   </link>
 
-  <link name="44_ss_th_1">
+  <link name="th_realtip">
     <inertial>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
+      <mass value="1e-06"/>
+      <inertia ixx="2.5e-05" ixy="0.0" ixz="0.0" iyy="2.5e-05" iyz="0.0" izz="2.5e-05"/>
     </inertial>
 
 
-  </link>
-
-  <link name="th_fingertip">
-    <inertial>
+    <visual>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+      <material name="ball_material">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    
 
 
-  </link>
-
-  <link name="44_ss_th_2">
-    <inertial>
+    <collision>
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-      <mass value="1e-09"/>
-      <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0"/>
-    </inertial>
-
-
+      <geometry>
+        <sphere radius="0.005"/>
+      </geometry>
+    </collision>
+    
   </link>
   
   <joint name="th_axl" type="revolute">
@@ -853,27 +757,11 @@
     <limit effort="0.95" velocity="8.48" lower="-0.436" upper="1.309"/>
   </joint>
 
-  <joint name="44_ss_th_1_frame" type="fixed">
-    <origin xyz="-0.01 0.0201 0.0032" rpy="1.5708 0.0 -1.5708"/>
-    <parent link="th_mcp"/>
-    <child link="44_ss_th_1"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="th_fingertip_frame" type="fixed">
-    <origin xyz="0.0 -0.0300003 0.014504" rpy="3.14159 -1.5708 0.0"/>
+  <joint name="th_realtip" type="fixed">
+    <origin xyz="0.0 -0.07 0.015" rpy="0.0 0.0 0.0"/>
     <parent link="th_ipl"/>
-    <child link="th_fingertip"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="44_ss_th_2_frame" type="fixed">
-    <origin xyz="0.01 -0.0201 0.0032" rpy="1.5708 0.0 1.5708"/>
-    <parent link="th_ipl"/>
-    <child link="44_ss_th_2"/>
-    <axis xyz="0.0 0.0 0.0"/>
+    <child link="th_realtip"/>
+    <axis xyz="0.0 0.0 -1.0"/>
     
   </joint>
   
@@ -901,27 +789,11 @@
     <limit effort="0.95" velocity="8.48" lower="-0.0873" upper="2.2689"/>
   </joint>
 
-  <joint name="44_ss_rf_1_frame" type="fixed">
-    <origin xyz="-0.0113381 0.0245413 0.023" rpy="0.0 0.0 -1.5708"/>
-    <parent link="rf_pip"/>
-    <child link="44_ss_rf_1"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="44_ss_rf_2_frame" type="fixed">
-    <origin xyz="0.045226 0.0095 -0.0259" rpy="1.5708 0.0 3.14159"/>
-    <parent link="rf_dip"/>
-    <child link="44_ss_rf_2"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="fingertip_ss_rf_1_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="-3.14159 -1.5708 0.0"/>
+  <joint name="rf_realtip" type="fixed">
+    <origin xyz="-0.02 -0.07 0.015" rpy="0.0 0.0 0.0"/>
     <parent link="rf_fingertip"/>
-    <child link="fingertip_ss_rf_1"/>
-    <axis xyz="0.0 0.0 0.0"/>
+    <child link="rf_realtip"/>
+    <axis xyz="0.0 0.0 -1.0"/>
     
   </joint>
 
@@ -949,27 +821,11 @@
     <limit effort="0.95" velocity="8.48" lower="-0.0873" upper="2.2689"/>
   </joint>
 
-  <joint name="44_ss_mf_1_frame" type="fixed">
-    <origin xyz="-0.0113381 0.0245413 0.023" rpy="0.0 0.0 -1.5708"/>
-    <parent link="mf_pip"/>
-    <child link="44_ss_mf_1"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="44_ss_mf_2_frame" type="fixed">
-    <origin xyz="0.045226 0.0095 -0.0259" rpy="1.5708 0.0 3.14159"/>
-    <parent link="mf_dip"/>
-    <child link="44_ss_mf_2"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="fingertip_ss_mf_4_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="-3.14159 -1.5708 0.0"/>
+  <joint name="mf_realtip" type="fixed">
+    <origin xyz="-0.02 -0.07 0.015" rpy="0.0 0.0 0.0"/>
     <parent link="mf_fingertip"/>
-    <child link="fingertip_ss_mf_4"/>
-    <axis xyz="0.0 0.0 0.0"/>
+    <child link="mf_realtip"/>
+    <axis xyz="0.0 0.0 -1.0"/>
     
   </joint>
 
@@ -997,27 +853,11 @@
     <limit effort="0.95" velocity="8.48" lower="-0.0873" upper="2.2689"/>
   </joint>
 
-  <joint name="44_ss_if_1_frame" type="fixed">
-    <origin xyz="-0.0113381 0.0245413 0.023" rpy="0.0 0.0 -1.5708"/>
-    <parent link="if_pip"/>
-    <child link="44_ss_if_1"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="44_ss_if_2_frame" type="fixed">
-    <origin xyz="0.045226 0.0095 -0.0259" rpy="1.5708 0.0 3.14159"/>
-    <parent link="if_dip"/>
-    <child link="44_ss_if_2"/>
-    <axis xyz="0.0 0.0 0.0"/>
-    
-  </joint>
-
-  <joint name="fingertip_ss_if_4_frame" type="fixed">
-    <origin xyz="0.0 -0.025 0.0145" rpy="3.14159 -1.5708 0.0"/>
+  <joint name="if_realtip" type="fixed">
+    <origin xyz="-0.02 -0.07 0.015" rpy="0.0 0.0 0.0"/>
     <parent link="if_fingertip"/>
-    <child link="fingertip_ss_if_4"/>
-    <axis xyz="0.0 0.0 0.0"/>
+    <child link="if_realtip"/>
+    <axis xyz="0.0 0.0 -1.0"/>
     
   </joint>
   

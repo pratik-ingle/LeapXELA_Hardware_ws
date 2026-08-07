@@ -15,6 +15,7 @@
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>xela_sparshskin_sim</exec_depend>
+  <exec_depend>xela_server_ros2</exec_depend>
   <exec_depend>leapXela_taxels_forewardkinematic</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
